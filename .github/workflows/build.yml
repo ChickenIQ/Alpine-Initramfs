@@ -29,7 +29,7 @@ jobs:
           for src in ./out/initramfs-*; do
             variant=$(basename "$src" | sed 's/initramfs-//')
             echo "Pushing variant: $variant"
-            ln -sf "$(pwd)/vmlinuz" ./vmlinuz
+            ln -sf "$(pwd)/out/vmlinuz" ./vmlinuz
             ln -sf "$(pwd)/$src" ./initramfs
             oras push ghcr.io/$REPO:$variant ./vmlinuz ./initramfs
           done
