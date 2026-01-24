@@ -7,9 +7,6 @@ on:
     branches:
       - main
 
-  schedule:
-    - cron: "0 0 * * 0"
-
 permissions:
   packages: write
 
@@ -20,10 +17,7 @@ jobs:
     steps:
       - uses: actions/checkout@v6
 
-      - run: |
-          sudo curl -fsSL https://raw.githubusercontent.com/alpinelinux/alpine-make-rootfs/master/alpine-make-rootfs -o /usr/bin/alpine-make-rootfs
-          sudo chmod +x /usr/bin/alpine-make-rootfs
-          sudo ./build.sh && sudo chown -R $USER:$USER ./out
+      - run: docker run -v "$(pwd):/data" --privileged alpine sh -c "apk add alpine-make-rootfs && cd /data && ./build.sh"
 
       - uses: oras-project/setup-oras@v1
 
