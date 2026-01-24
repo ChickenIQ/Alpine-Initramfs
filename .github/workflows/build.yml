@@ -23,7 +23,7 @@ jobs:
       - run: |
           sudo curl -fsSL https://raw.githubusercontent.com/alpinelinux/alpine-make-rootfs/master/alpine-make-rootfs -o /usr/bin/alpine-make-rootfs
           sudo chmod +x /usr/bin/alpine-make-rootfs
-          sudo ./build.sh
+          sudo ./build.sh && sudo chown -R $USER:$USER ./out
 
       - uses: oras-project/setup-oras@v1
 
@@ -33,6 +33,5 @@ jobs:
           for src in ./out/initramfs-*; do
             variant=$(basename "$src" | sed 's/initramfs-//')
             echo "Pushing variant: $variant"
-            ln -sf "$src" ./out/initramfs
-            oras push ghcr.io/${{ github.repository }}:$variant ./out/vmlinuz ./out/initramfs
+            oras push ghcr.io/${{ github.repository }}:$variant ./out/vmlinuz "$src:application/vnd.oci.image.layer.v1.tar+gzip:initramfs"
           done
