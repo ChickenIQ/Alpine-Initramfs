@@ -29,5 +29,5 @@ jobs:
             variant=$(basename "$src" | sed 's/initramfs-//')
             echo "Pushing variant: $variant"
             ln -sf "$src" /tmp/initramfs
-            oras push ghcr.io/$REPO:$variant ./out/vmlinuz /tmp/initramfs
+            oras push --disable-path-validation ghcr.io/$REPO:$variant ./out/vmlinuz /tmp/initramfs
           done
