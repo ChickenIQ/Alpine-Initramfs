@@ -28,6 +28,6 @@ jobs:
           for src in ./out/initramfs-*; do
             variant=$(basename "$src" | sed 's/initramfs-//')
             echo "Pushing variant: $variant"
-            ln -sf "$src" /tmp/initramfs
+            ln -sf "$(pwd)/$src" /tmp/initramfs
             oras push --disable-path-validation ghcr.io/$REPO:$variant ./out/vmlinuz /tmp/initramfs
           done
