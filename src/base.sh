@@ -48,26 +48,6 @@ rm /etc/motd
 # Add init symlink
 ln -s /sbin/init /init
 
-# Add default Limine config
-cat << 'EOF' > /usr/share/limine/limine.conf
-${CMDLINE}=""
-
-default_entry: 1
-timeout: 5
-
-/Alpine (A)
-  protocol: linux
-  path: boot():/vmlinuz-A
-  cmdline: ${CMDLINE} alpine.slot=A 
-  module_path: boot():/initramfs-A
-
-/Alpine (B)
-  protocol: linux
-  path: boot():/vmlinuz-B
-  cmdline: ${CMDLINE} alpine.slot=B
-  module_path: boot():/initramfs-B
-EOF
-
 # Create init script to mount optional Alpine partitions
 cat << 'EOF' > /etc/init.d/setup-persistence
 #!/sbin/openrc-run
@@ -110,18 +90,18 @@ mkdir -p /boot /data
 chmod +x /etc/init.d/setup-persistence
 rc-update add setup-persistence sysinit
 
-cat << 'EOF' > /usr/bin/alpine-update-boot
+
+# Install SSH keys
+mkdir -p /root/.ssh
+echo "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIJF4Waz2pv+NAEsLMT1kaFbtYjx6faBRPgHzlHdN30In" >> /root/.ssh/authorized_keys
+
+# Limine Updater
+cat << 'EOF' > /usr/bin/alpine-limine-update
 #!/bin/sh -e
 dev=$(findmnt -n -o SOURCE /boot | sed 's/p\?[0-9]*$//')
 if [ -z "${dev}" ]; then
   echo "/boot is not mounted"
   exit 1
-fi
-
-# Install Default Config  
-mkdir -p /boot/limine
-if [ ! -f /boot/limine.conf ]; then
-  cp /usr/share/limine/limine.conf /boot/limine
 fi
 
 # EFI Boot
@@ -133,8 +113,63 @@ limine bios-install "${dev}"
 cp /usr/share/limine/limine-bios.sys /boot/limine
 EOF
 
-chmod +x /usr/bin/alpine-update-boot
+chmod +x /usr/bin/alpine-limine-update
 
-# Install SSH keys
-mkdir -p /root/.ssh
-echo "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIJF4Waz2pv+NAEsLMT1kaFbtYjx6faBRPgHzlHdN30In" >> /root/.ssh/authorized_keys
+# Limine Config Generator
+cat << 'EOF' > /usr/bin/alpine-limine-config
+#!/bin/sh -e
+cmdline="$1"
+entry=$2
+
+mkdir -p /boot/limine
+cat << CONF > /boot/limine/limine.conf
+\${cmdline}="${cmdline}"
+default_entry: "${entry:-1}"
+timeout: 2
+
+/Alpine (A)
+  protocol: linux
+  path: boot():/alpine/A/vmlinuz
+  cmdline: alpine.slot=A \${cmdline}
+  module_path: boot():/alpine/A/initramfs
+
+/Alpine (B)
+  protocol: linux
+  path: boot():/alpine/B/vmlinuz
+  cmdline: alpine.slot=B \${cmdline}
+  module_path: boot():/alpine/B/initramfs
+CONF
+EOF
+
+chmod +x /usr/bin/alpine-limine-config
+
+
+# Alpine Updater
+cat << 'EOF' > /usr/bin/alpine-image-update
+#!/bin/sh -e
+image=$1
+
+if [ -z "${image}" ]; then
+  echo "No image specified"
+  exit 1
+fi
+
+if ! mountpoint -q /boot; then
+  echo "/boot is not mounted"
+  exit 1
+fi
+
+mkdir -p /boot/alpine/$slot
+oras pull $image --registry-config="" -o /boot/alpine/$slot/
+EOF
+
+chmod +x /usr/bin/alpine-image-update
+
+# Current Slot Detector
+cat << 'EOF' > /usr/bin/alpine-current-slot
+#!/bin/sh -e
+slot=$(sed -n 's/.*alpine\.slot="\?\([^" ]*\)"\?.*/\1/p' /proc/cmdline)
+echo "${slot:-NULL}"
+EOF
+
+chmod +x /usr/bin/alpine-current-slot
