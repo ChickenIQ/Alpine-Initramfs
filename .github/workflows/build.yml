@@ -30,8 +30,10 @@ jobs:
       - run: echo "${{ secrets.GITHUB_TOKEN }}" | oras login ghcr.io -u ${{ github.actor }} --password-stdin
 
       - run: |
+          REPO=$(echo "${{ github.repository }}" | tr '[:upper:]' '[:lower:]')
           for src in ./out/initramfs-*; do
             variant=$(basename "$src" | sed 's/initramfs-//')
             echo "Pushing variant: $variant"
-            oras push ghcr.io/${{ github.repository }}:$variant ./out/vmlinuz "$src:application/vnd.oci.image.layer.v1.tar+gzip:initramfs"
+            ln -sf "$src" ./out/initramfs
+            oras push ghcr.io/$REPO:$variant ./out/vmlinuz ./out/initramfs
           done
