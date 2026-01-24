@@ -25,9 +25,10 @@ jobs:
 
       - run: |
           REPO=$(echo "${{ github.repository }}" | tr '[:upper:]' '[:lower:]')
+          mkdir -p ./current
           for src in ./out/initramfs-*; do
             variant=$(basename "$src" | sed 's/initramfs-//')
             echo "Pushing variant: $variant"
-            ln -sf "$(pwd)/$src" /tmp/initramfs
-            oras push --disable-path-validation ghcr.io/$REPO:$variant ./out/vmlinuz /tmp/initramfs
+            ln -sf "$(pwd)/$src" ./initramfs
+            oras push ghcr.io/$REPO:$variant ./out/vmlinuz ./initramfs
           done
