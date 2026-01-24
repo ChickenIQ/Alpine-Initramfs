@@ -15,14 +15,14 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Checkout
-        uses: actions/checkout@v6
+      - uses: actions/checkout@v6
 
-      - name: Build
-        run: docker run -v "$(pwd):/data" --privileged alpine sh -c "apk add alpine-make-rootfs && cd /data && ./build.sh"
+      - run: echo "time=$(date +'%d-%m-%Y')" >> $GITHUB_ENV
 
-      - name: Release
-        uses: softprops/action-gh-release@v2
+      - run: docker run -v "$(pwd):/data" --privileged alpine sh -c "apk add alpine-make-rootfs && cd /data && ./build.sh"
+
+      - uses: softprops/action-gh-release@v2
         with:
-          tag_name: build-${{ github.run_number }}
+          tag_name: build-${{ github.run_id }}
+          name: ${{ env.time }}
           files: ./out/*
