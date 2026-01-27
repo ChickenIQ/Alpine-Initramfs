@@ -1,0 +1,36 @@
+#!/sbin/openrc-run
+
+description="Mount optional Alpine boot and data partitions"
+
+depend() {
+  need dev
+  after mdev
+  before localmount
+}
+
+start() {
+  ebegin "Mounting Persistence Partitions"
+
+  if [ -e "/dev/disk/by-partlabel/alpine-boot" ]; then
+    [ ! -d "/boot" ] && mkdir -p /boot  
+    mount -o defaults,noatime /dev/disk/by-partlabel/alpine-boot /boot
+    einfo "Mounted alpine-boot on /boot"
+  fi
+
+  if [ -e "/dev/disk/by-partlabel/alpine-data" ]; then
+    [ ! -d "/data" ] && mkdir -p /data
+    mount -o defaults,noatime /dev/disk/by-partlabel/alpine-data /data
+    einfo "Mounted alpine-data on /data"
+  fi
+
+  # TODO: get persistent dirs and files from /boot/alpine/config.yaml and bind mount them to /data
+
+  eend 0
+}
+
+stop() {
+  ebegin "Unmounting Persistence Partitions"
+  umount /data 2>/dev/null
+  umount /boot 2>/dev/null
+  eend 0
+}

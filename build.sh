@@ -6,8 +6,13 @@ BUILD_DIR=$(mktemp -d)
 
 build_variant() {
   variant="$1"
-  echo "Running variant script: $SRC_DIR/$variant.sh"
-  SCRIPT_CHROOT=yes alpine-make-rootfs "$BUILD_DIR/$variant" "$SRC_DIR/$variant.sh"
+  if [ -d "$SRC_DIR/files/$variant" ]; then
+    echo "Copying files for variant $variant"
+    cp -a "$SRC_DIR/files/$variant/." "$BUILD_DIR/$variant/"
+  fi
+
+  echo "Running variant script: $SRC_DIR/scripts/$variant.sh"
+  SCRIPT_CHROOT=yes alpine-make-rootfs "$BUILD_DIR/$variant" "$SRC_DIR/scripts/$variant.sh"
   
   # Generate initramfs
   echo "Creating initramfs for $variant"
@@ -17,16 +22,12 @@ build_variant() {
 }
 
 # Build base variant
-mkdir -p "$BUILD_DIR/base/etc/mkinitfs" "$OUT_DIR"
-echo "disable_trigger=yes" > "$BUILD_DIR/base/etc/mkinitfs/mkinitfs.conf"
 build_variant "base"
-
-# Move kernel to output directory
 mv "$BUILD_DIR/$variant/boot/vmlinuz"* "$OUT_DIR/vmlinuz"
 rm -rf "$BUILD_DIR/base/boot"
 
 # Build all other variants
-for script in "$SRC_DIR"/*.sh; do
+for script in "$SRC_DIR"/scripts/*.sh; do
   variant="$(basename "$script" .sh)"
   [ "$variant" != "base" ] && {
     cp -a "$BUILD_DIR/base" "$BUILD_DIR/$variant"

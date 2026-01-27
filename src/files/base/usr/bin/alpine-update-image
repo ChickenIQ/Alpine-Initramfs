@@ -1,0 +1,26 @@
+#!/bin/sh -e
+image=$1
+slot=$2
+
+next_entry() {
+  entry=$(alpine-cmdline alpine.slot)
+  case "${entry}" in
+    A) echo "2" ;;
+    B) echo "1" ;;
+    *) echo "Invalid slot: ${entry}" >&2; exit 1 ;;
+  esac
+}
+
+# TODO: get image from /boot/alpine/config.yaml if not provided
+[ -z "${image}" ] && echo "Usage: alpine-update-image <image> [slot]" && exit 1
+[ -z "${slot}" ] && slot=$(next_entry)
+
+
+if ! mountpoint -q /boot; then
+  echo "/boot is not mounted"
+  exit 1
+fi
+
+# TODO: get and process digest for image
+mkdir -p /boot/alpine/$slot
+oras pull $image --registry-config="" -o /boot/alpine/$slot/

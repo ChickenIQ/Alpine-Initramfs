@@ -1,0 +1,33 @@
+#!/bin/sh -e
+
+cmdline=$(alpine-cmdline alpine.cmdline)
+image=$(alpine-cmdline alpine.image)
+dev=$(alpine-cmdline alpine.disk)
+
+[ -z "${image}" ] && echo "alpine.image kernel parameter is required." && exit 1
+[ -z "${dev}" ] && echo "alpine.disk kernel parameter is required." && exit 1
+[ ! -b "${dev}" ] && echo "Device ${dev} does not exist." && exit 1
+
+sgdisk -Z \
+  -n 1::+1M -t 1:ef02 -c 1:"alpine-bios" \
+  -n 2::+5G -t 2:ef00 -c 2:"alpine-boot" \
+  -n 3::    -t 3:8300 -c 3:"alpine-data" \
+  "${dev}"
+
+# Handle nvme vs sd device naming
+part="${dev}"
+[[ "$dev" == *"nvme"* ]] && part="${dev}p"
+
+mkfs.fat -F 32 -I "${part}2"
+mkfs.ext4 -F "${part}3"
+
+mkdir -p /boot
+mount "${part}2" /boot
+
+# Install Limine Bootloader
+alpine-update-boot "${cmdline}" "1"
+
+# Install Alpine Image
+alpine-update-image "${image}" "1"
+
+# TODO: write default config file to /boot/alpine/config.yaml
