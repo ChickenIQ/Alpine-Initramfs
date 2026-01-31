@@ -28,7 +28,7 @@ jobs:
           for src in ./out/initramfs-*; do
             variant=$(basename "$src" | sed 's/initramfs-//')
             echo "Pushing variant: $variant"
-            ln -sf "$(pwd)/out/vmlinuz" ./vmlinuz
             ln -sf "$(pwd)/$src" ./initramfs
+            ln -sf "$(pwd)/out/vmlinuz" ./vmlinuz
             oras push --artifact-platform linux/$ARCH "ghcr.io/${REPO}:${variant}_${ARCH}" ./vmlinuz ./initramfs
           done

@@ -1,0 +1,21 @@
+name: merge
+
+on:
+  workflow_call:
+
+jobs:
+  build:
+    runs-on: ubuntu-slim
+    steps:
+      - uses: actions/checkout@v6
+
+      - uses: oras-project/setup-oras@v1
+
+      - run: echo "${{ secrets.GITHUB_TOKEN }}" | oras login ghcr.io -u ${{ github.actor }} --password-stdin
+
+      - run: |
+          REPO=$(echo "${{ github.repository }}" | tr '[:upper:]' '[:lower:]')
+          for src in ./src/scripts/*.sh; do
+            variant=$(basename "$src" ".sh")
+            oras manifest index create ghcr.io/$REPO:$variant ${variant}_amd64 ${variant}_arm64
+          done
