@@ -19,8 +19,8 @@ if ! mountpoint -q /boot; then
   exit 1
 fi
 
-# Pull image if not up to date
-digest=$(oras manifest fetch --registry-config="" --descriptor "$image" | yq -r ".digest" )
+arch=$(uname -m | grep -q x86_64 && echo amd64 || echo arm64)
+digest=$(oras manifest fetch --platform linux/$arch --registry-config="" --descriptor "$image" | yq -r ".digest" )
 
 mkdir -p /boot/alpine/$slot
 if [ -f /boot/alpine/$slot/.digest ]; then
@@ -30,5 +30,5 @@ if [ -f /boot/alpine/$slot/.digest ]; then
   fi
 fi
 
-oras pull --registry-config="" -o /boot/alpine/$slot/ $image 
+oras pull --platform linux/$arch --registry-config="" -o /boot/alpine/$slot/ $image 
 echo "$digest" > /boot/alpine/$slot/.digest

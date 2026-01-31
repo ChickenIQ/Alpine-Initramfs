@@ -6,12 +6,10 @@ on:
       runner:
         type: string
         required: true
-        default: ubuntu-latest
 
 jobs:
   build:
     runs-on: ${{ inputs.runner }}
-
     steps:
       - uses: actions/checkout@v6
 

@@ -13,25 +13,19 @@ concurrency:
 
 jobs:
   build:
-    name: build
     secrets: inherit
     uses: ./.github/workflows/builder.yml
-
     permissions:
       packages: write
-
     strategy:
       matrix:
         runner: [ubuntu-24.04, ubuntu-24.04-arm]
-
     with:
       runner: ${{ matrix.runner }}
 
-  merge:
-    name: merge
+  index:
     needs: build
     secrets: inherit
-    uses: ./.github/workflows/merge.yml
-
+    uses: ./.github/workflows/indexer.yml
     permissions:
       packages: write

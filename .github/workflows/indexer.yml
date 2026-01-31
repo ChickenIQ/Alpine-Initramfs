@@ -1,10 +1,10 @@
-name: merge
+name: indexer
 
 on:
   workflow_call:
 
 jobs:
-  build:
+  index:
     runs-on: ubuntu-slim
     steps:
       - uses: actions/checkout@v6

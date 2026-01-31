@@ -2,7 +2,7 @@
 set -e
 
 # Install base packages
-apk add --no-cache alpine-base linux-firmware-none linux-lts util-linux openssh dhcpcd limine oras-cli yq
+apk add --no-cache alpine-base linux-firmware-none linux-lts util-linux openssh dhcpcd limine oras-cli yq vim
 
 # Default services
 rc-update add hwdrivers sysinit
