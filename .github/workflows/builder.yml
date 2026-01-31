@@ -24,6 +24,8 @@ jobs:
       - run: |
           REPO=$(echo "${{ github.repository }}" | tr '[:upper:]' '[:lower:]')
           ARCH=$(uname -m | grep -q x86_64 && echo amd64 || echo arm64)
+          echo "Architecture: $ARCH"
+          echo "Repository: $REPO"
           mkdir -p ./current
           for src in ./out/initramfs-*; do
             variant=$(basename "$src" | sed 's/initramfs-//')
