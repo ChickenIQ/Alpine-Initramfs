@@ -5,4 +5,4 @@ if [ -z "$1" ]; then
   exit 1
 fi
 
-sed -n "s/.*${$1}=\"\?\([^\" ]*\)\"\?.*/\1/p" /proc/cmdline
+sed -n "s/.*$1=\"\?\([^\" ]*\)\"\?.*/\1/p"  /proc/cmdline

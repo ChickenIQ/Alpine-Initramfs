@@ -1,8 +1,8 @@
 #!/bin/sh -e
 
-cmdline=$(alpine-cmdline alpine.cmdline)
-image=$(alpine-cmdline alpine.image)
-dev=$(alpine-cmdline alpine.disk)
+cmdline=$(alpine-get-cmdline alpine.cmdline)
+image=$(alpine-get-cmdline alpine.image)
+dev=$(alpine-get-cmdline alpine.disk)
 
 [ -z "${image}" ] && echo "alpine.image kernel parameter is required." && exit 1
 [ -z "${dev}" ] && echo "alpine.disk kernel parameter is required." && exit 1
@@ -30,4 +30,12 @@ alpine-update-boot "${cmdline}" "1"
 # Install Alpine Image
 alpine-update-image "${image}" "1"
 
-# TODO: write default config file to /boot/alpine/config.yaml
+# Write Default config.yaml
+cat << EOF > /boot/alpine/config.yaml
+cmdline: "${cmdline}"
+image: "${image}"
+
+persistence:
+  files: []
+  dirs: []
+EOF

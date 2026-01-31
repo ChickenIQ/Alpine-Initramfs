@@ -22,6 +22,7 @@ build_variant() {
 }
 
 # Build base variant
+mkdir -p "$OUT_DIR"
 build_variant "base"
 mv "$BUILD_DIR/$variant/boot/vmlinuz"* "$OUT_DIR/vmlinuz"
 rm -rf "$BUILD_DIR/base/boot"

@@ -3,10 +3,11 @@
 cmdline="$1"
 entry="$2"
 
-# TODO: get cmdline from /boot/alpine/config.yaml if not provided
+# Get cmdline from config if not provided
+[ -z "${cmdline}" ] && cmdline=$(alpine-get-config cmdline)
 
 next_entry() {
-  entry=$(alpine-cmdline alpine.slot)
+  entry=$(alpine-get-cmdline alpine.slot)
   case "${entry}" in
     A) echo "2" ;;
     B) echo "1" ;;
@@ -47,12 +48,12 @@ timeout: 2
 /Alpine (A)
   protocol: linux
   path: boot():/alpine/A/vmlinuz
-  cmdline: alpine.slot=A \${cmdline}
+  cmdline: \${cmdline} alpine.slot=A
   module_path: boot():/alpine/A/initramfs
 
 /Alpine (B)
   protocol: linux
   path: boot():/alpine/B/vmlinuz
-  cmdline: alpine.slot=B \${cmdline}
+  cmdline: \${cmdline} alpine.slot=B
   module_path: boot():/alpine/B/initramfs
 EOF

@@ -1,0 +1,9 @@
+#!/bin/sh -e
+
+if [ -z "$1" ]; then
+  echo "Usage: $0 <yaml-path>"
+  exit 1
+fi
+
+res=$(yq -r ".$1" /boot/alpine/config.yaml)
+[ "$res" = "null" ] && echo "" || echo "$res"

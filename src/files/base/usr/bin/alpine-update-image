@@ -3,7 +3,7 @@ image=$1
 slot=$2
 
 next_entry() {
-  entry=$(alpine-cmdline alpine.slot)
+  entry=$(alpine-get-cmdline alpine.slot)
   case "${entry}" in
     A) echo "2" ;;
     B) echo "1" ;;
@@ -11,16 +11,24 @@ next_entry() {
   esac
 }
 
-# TODO: get image from /boot/alpine/config.yaml if not provided
-[ -z "${image}" ] && echo "Usage: alpine-update-image <image> [slot]" && exit 1
+[ -z "${image}" ] && image=$(alpine-get-config image)
 [ -z "${slot}" ] && slot=$(next_entry)
-
 
 if ! mountpoint -q /boot; then
   echo "/boot is not mounted"
   exit 1
 fi
 
-# TODO: get and process digest for image
+# Pull image if not up to date
+digest=$(oras manifest fetch --registry-config="" --descriptor "$image" | yq -r ".digest" )
+
 mkdir -p /boot/alpine/$slot
-oras pull $image --registry-config="" -o /boot/alpine/$slot/
+if [ -f /boot/alpine/$slot/.digest ]; then
+  if [ "$digest" = "$(cat /boot/alpine/$slot/.digest)" ]; then
+    echo "Alpine image is already up to date in slot $slot."
+    exit 0
+  fi
+fi
+
+oras pull --registry-config="" -o /boot/alpine/$slot/ $image 
+echo "$digest" > /boot/alpine/$slot/.digest
