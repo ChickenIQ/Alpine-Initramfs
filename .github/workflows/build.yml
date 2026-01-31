@@ -30,6 +30,8 @@ jobs:
     runs-on: ubuntu-latest
     name: merge manifests
     needs: build
+    permissions:
+      packages: write
 
     steps:
       - uses: actions/checkout@v6
