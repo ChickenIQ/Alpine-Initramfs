@@ -7,29 +7,21 @@ on:
     branches:
       - main
 
-permissions:
-  packages: write
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref || github.run_id }}
+  cancel-in-progress: true
 
 jobs:
   build:
-    runs-on: ubuntu-latest
+    name: build
+    uses: ./.github/workflows/builder.yml
+    secrets: inherit
+    permissions:
+      packages: write
 
-    steps:
-      - uses: actions/checkout@v6
+    strategy:
+      matrix:
+        runner: [ubuntu-24.04, ubuntu-24.04-arm]
 
-      - run: docker run -v "$(pwd):/data" --privileged alpine sh -c "apk add alpine-make-rootfs && cd /data && ./build.sh"
-
-      - uses: oras-project/setup-oras@v1
-
-      - run: echo "${{ secrets.GITHUB_TOKEN }}" | oras login ghcr.io -u ${{ github.actor }} --password-stdin
-
-      - run: |
-          REPO=$(echo "${{ github.repository }}" | tr '[:upper:]' '[:lower:]')
-          mkdir -p ./current
-          for src in ./out/initramfs-*; do
-            variant=$(basename "$src" | sed 's/initramfs-//')
-            echo "Pushing variant: $variant"
-            ln -sf "$(pwd)/out/vmlinuz" ./vmlinuz
-            ln -sf "$(pwd)/$src" ./initramfs
-            oras push ghcr.io/$REPO:$variant ./vmlinuz ./initramfs
-          done
+    with:
+      runner: ${{ matrix.runner }}

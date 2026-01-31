@@ -1,0 +1,34 @@
+name: builder
+
+on:
+  workflow_call:
+    inputs:
+      runner:
+        type: string
+        required: true
+        default: ubuntu-latest
+
+jobs:
+  build:
+    runs-on: ${{ inputs.runner }}
+
+    steps:
+      - uses: actions/checkout@v6
+
+      - run: docker run -v "$(pwd):/data" --privileged alpine sh -c "apk add alpine-make-rootfs && cd /data && ./build.sh"
+
+      - uses: oras-project/setup-oras@v1
+
+      - run: echo "${{ secrets.GITHUB_TOKEN }}" | oras login ghcr.io -u ${{ github.actor }} --password-stdin
+
+      - run: |
+          REPO=$(echo "${{ github.repository }}" | tr '[:upper:]' '[:lower:]')
+          ARCH=$(uname -m | grep -q x86_64 && echo amd64 || echo arm64)
+          mkdir -p ./current
+          for src in ./out/initramfs-*; do
+            variant=$(basename "$src" | sed 's/initramfs-//')
+            echo "Pushing variant: $variant"
+            ln -sf "$(pwd)/out/vmlinuz" ./vmlinuz
+            ln -sf "$(pwd)/$src" ./initramfs
+            oras push ghcr.io/$REPO-$ARCH:$variant ./vmlinuz ./initramfs
+          done
