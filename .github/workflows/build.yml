@@ -45,5 +45,5 @@ jobs:
           for src in ./src/scripts/*.sh; do
             variant=$(basename "$src" ".sh")
             echo "Merging variant: $variant"
-            oras manifest index create ghcr.io/$REPO:$variant $variant_amd64 $variant_arm64
+            oras manifest index create ghcr.io/$REPO:$variant ${variant}_amd64 ${variant}_arm64
           done
