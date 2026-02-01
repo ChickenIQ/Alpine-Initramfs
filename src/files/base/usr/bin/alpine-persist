@@ -1,0 +1,32 @@
+#!/bin/sh -e
+
+type="$1"
+local_path="$2"
+data_path="/data${local_path}"
+
+if [ "$type" != "file" ] && [ "$type" != "dir" ]; then
+  echo "Usage: $0 {file|dir} path" >&2
+  exit 1
+fi
+
+if [ -z "$local_path" ]; then
+  echo "Usage: $0 {file|dir} absolute_path" >&2
+  exit 1
+fi
+
+make_path() {
+  local type="$1"
+  local path="$2"
+
+  if [ "$type" = "dir" ]; then
+    mkdir -p "$path"
+  else
+    mkdir -p "$(dirname "$path")"
+    touch "$path"
+  fi
+}
+
+make_path "$type" "$path"
+make_path "$type" "$data_path"
+
+mount --bind "$data_path" "$path"
