@@ -5,5 +5,5 @@ if [ -z "$1" ]; then
   exit 1
 fi
 
-res=$(yq -r ".$1" /boot/alpine/config.yaml)
-[ "$res" = "null" ] && echo "" || echo "$res"
+res=$(yq -r ".$1 | (.[]? // .)" /boot/alpine/config.yaml)
+[ "$res" = "null" ] || [ "$res" = "[]" ] && echo "" || echo "$res"

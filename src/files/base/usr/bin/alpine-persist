@@ -34,4 +34,4 @@ make_path() {
 make_path "$type" "$data_path"
 make_path "$type" "$local_path"
 
-mount --bind "$data_path" "$path"
+mount --bind "$data_path" "$local_path"
