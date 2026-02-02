@@ -99,7 +99,7 @@ if [ -z "${dev}" ]; then
   exit 1
 fi
 
-image=${ALPINE_IMAGE:-$(get_config "update.image")}
+image=${ALPINE_IMAGE:-$(get_config "image")}
 if [ -z "$image" ]; then
   echo "No image specified in /boot/alpine/config.yaml"
   exit 1
