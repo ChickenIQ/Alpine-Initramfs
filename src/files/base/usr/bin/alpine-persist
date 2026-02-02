@@ -31,7 +31,7 @@ make_path() {
   fi
 }
 
-make_path "$type" "$path"
 make_path "$type" "$data_path"
+make_path "$type" "$local_path"
 
 mount --bind "$data_path" "$path"
