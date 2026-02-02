@@ -73,21 +73,22 @@ update_boot() {
   fi
 
   # Generate Limine configuration
+  echo "Updating Limine bootloader configuration (default slot: $entry)..."
   cat <<- EOF > /boot/limine/limine.conf
-  ${cmdline}="${cmdline}"
-  default_entry: "${entry}"
+  \${cmdline}="${cmdline}"
+  default_entry: ${entry}
   timeout: 2
 
   /Alpine (A)
     protocol: linux
     path: boot():/alpine/A/vmlinuz
-    cmdline: ${cmdline} alpine.slot=A
+    cmdline: \${cmdline} alpine.slot=A
     module_path: boot():/alpine/A/initramfs
 
   /Alpine (B)
     protocol: linux
     path: boot():/alpine/B/vmlinuz
-    cmdline: ${cmdline} alpine.slot=B
+    cmdline: \${cmdline} alpine.slot=B
     module_path: boot():/alpine/B/initramfs
 EOF
 }
