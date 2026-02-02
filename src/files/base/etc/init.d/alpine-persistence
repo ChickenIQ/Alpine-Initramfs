@@ -5,6 +5,7 @@ description="Mount optional Alpine boot and data partitions"
 depend() {
   need dev
   after mdev
+  before localmount
 }
 
 start() {
