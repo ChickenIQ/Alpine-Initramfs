@@ -13,12 +13,14 @@ start() {
   mkdir -p /boot /data
 
   # Attempt to mount boot
+  einfo "Checking for alpine-boot partition..."
   if [ -e "/dev/disk/by-partlabel/alpine-boot" ]; then
     mount -o defaults,noatime /dev/disk/by-partlabel/alpine-boot /boot
     einfo "Mounted alpine-boot on /boot"
   fi
 
   # Attempt to mount data
+  einfo "Checking for alpine-data partition..."
   if [ -e "/dev/disk/by-partlabel/alpine-data" ]; then
     mount -o defaults,noatime /dev/disk/by-partlabel/alpine-data /data
     einfo "Mounted alpine-data on /data"
