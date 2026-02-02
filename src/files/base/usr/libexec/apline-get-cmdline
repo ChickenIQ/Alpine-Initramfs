@@ -1,0 +1,8 @@
+#!/bin/sh -e
+
+if [ -z "$1" ]; then
+  echo "Usage: $0 <parameter>"
+  exit 1
+fi
+
+sed -n "s/.*$1=\"\?\([^\" ]*\)\"\?.*/\1/p" /proc/cmdline

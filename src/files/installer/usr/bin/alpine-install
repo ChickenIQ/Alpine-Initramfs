@@ -1,8 +1,10 @@
 #!/bin/sh -e
 
-cmdline=$(alpine-cmdline alpine.cmdline)
-image=$(alpine-cmdline alpine.image)
-dev=$(alpine-cmdline alpine.disk)
+get_cmdline() { /usr/libexec/alpine-get-cmdline "$1"; }
+
+cmdline=$(get_cmdline alpine.cmdline)
+image=$(get_cmdline alpine.image)
+dev=$(get_cmdline alpine.disk)
 
 [ -z "${image}" ] && echo "alpine.image kernel parameter is required." && exit 1
 [ -z "${dev}" ] && echo "alpine.disk kernel parameter is required." && exit 1
@@ -10,7 +12,7 @@ dev=$(alpine-cmdline alpine.disk)
 
 echo "Waiting for DNS and Internet connectivity"
 count=0
-while ! wget -q --spider -T 2 https://github.com 2>/dev/null; do
+while ! wget -q --spider -T 2 https://ghcr.io 2>/dev/null; do
   if [ $count -ge 300 ]; then
     echo "Network/DNS timed out"
     exit 1

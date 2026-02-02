@@ -1,15 +1,10 @@
 #!/bin/sh -e
 
 # Get an option from the configuration file
-get_config() {
-  local res=$(yq -r ".$1" /boot/alpine/config.yaml)
-  [ "$res" = "null" ] && echo "" || echo "$res"
-}
+get_config() { /usr/libexec/alpine-get-config "$1"; }
 
 # Get a parameter from the kernel command line
-get_cmdline() {
-  sed -n "s/.*$1=\"\?\([^\" ]*\)\"\?.*/\1/p" /proc/cmdline
-}
+get_cmdline() { /usr/libexec/alpine-get-cmdline "$1"; }
 
 # Get the currently booted slot from kernel command line
 get_booted_slot() {

@@ -15,7 +15,7 @@ if [ "$type" != "file" ] && [ "$type" != "dir" ]; then
 fi
 
 if [ -z "$local_path" ]; then
-  echo "Usage: $0 {file|dir} absolute_path" >&2
+  echo "Usage: $0 {file|dir} path" >&2
   exit 1
 fi
 

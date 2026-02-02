@@ -7,7 +7,7 @@ depend() {
 
 start() {
   # Only run installer if alpine.slot=installer
-  slot=$(alpine-cmdline alpine.slot)
+  slot=$(/usr/libexec/alpine-get-cmdline alpine.slot)
   if [ "$slot" = "installer" ]; then
     ebegin "Running Alpine Installer"
     alpine-install
