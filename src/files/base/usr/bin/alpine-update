@@ -8,10 +8,15 @@ get_cmdline() { /usr/libexec/alpine-get-cmdline "$1"; }
 
 get_slot_name() { [ "$1" = "1" ] && echo "A" || echo "B"; }
 
-get_next_slot() { [ "$1" = "1" ] && echo "2" || echo "1"; }
+# Get the next slot number
+get_next_slot() {
+  [ -n "$ALPINE_SLOT" ] && { echo "$ALPINE_SLOT"; return; }
+  [ "$1" = "1" ] && echo "2" || echo "1"
+}
 
 # Get the currently booted slot from kernel command line
 get_booted_slot() {
+  [ -n "$ALPINE_SLOT" ] && { echo "$ALPINE_SLOT"; return; }
   local slot=$(get_cmdline "alpine.slot")
   case "$slot" in
     A|a) echo "1" ;;
@@ -22,6 +27,7 @@ get_booted_slot() {
 
 # Get the current default boot slot from limine configuration
 get_config_slot() {
+  [ -n "$ALPINE_SLOT" ] && { echo "$ALPINE_SLOT"; return; }
   local slot=""
   if [ -f /boot/limine/limine.conf ]; then
     slot=$(sed -n 's/^default_entry: *"\?\([0-9]\+\)"\?.*/\1/p' /boot/limine/limine.conf)
@@ -127,7 +133,7 @@ fi
 
 
 # Update image and switch slots if the image changed, else use the one from the limine config
-current_slot="${ALPINE_SLOT:-$(get_booted_slot)}"
+current_slot="$(get_booted_slot)"
 if update_image "$current_slot" "$image"; then
   boot_slot=$(get_next_slot "$current_slot")
 else
@@ -135,7 +141,6 @@ else
 fi
 
 # Update Bootloader
-boot_slot="${ALPINE_SLOT:-$boot_slot}"
 cmdline="${ALPINE_CMDLINE:-$(get_config "cmdline")}"
 install_bootloader="${ALPINE_INSTALL_BOOTLOADER:-false}"
 

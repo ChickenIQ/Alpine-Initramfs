@@ -5,57 +5,52 @@ description="Mount optional Alpine boot and data partitions"
 depend() {
   need dev
   after mdev
-  before localmount
 }
 
 start() {
-  # get_config() { /usr/libexec/alpine-get-config "$1"; }
+  get_config() { /usr/libexec/alpine-get-config "$1"; }
   
-  # local boot_mounted=false
-  # local data_mounted=false
+  local boot_mounted=false
+  local data_mounted=false
 
   ebegin "Mounting Persistence Partitions"
   mkdir -p /boot /data
 
   # Attempt to mount boot
   if [ -e "/dev/disk/by-partlabel/alpine-boot" ]; then
-    if mount -o defaults,noatime /dev/disk/by-partlabel/alpine-boot /boot; then
-      einfo "Mounted alpine-boot on /boot"
-      boot_mounted=true
-    else
-      eerror "Failed to mount alpine-boot"
-    fi 
+    [ ! -d "/boot" ] && mkdir -p /boot  
+    mount -o defaults,noatime /dev/disk/by-partlabel/alpine-boot /boot
+    einfo "Mounted alpine-boot on /boot"
+    boot_mounted=true
   fi
 
   # Attempt to mount data
   if [ -e "/dev/disk/by-partlabel/alpine-data" ]; then
-    if mount -o defaults,noatime /dev/disk/by-partlabel/alpine-data /data; then
-      einfo "Mounted alpine-data on /data"
-      data_mounted=true
-    else
-      eerror "Failed to mount alpine-data"
-    fi
+    [ ! -d "/data" ] && mkdir -p /data
+    mount -o defaults,noatime /dev/disk/by-partlabel/alpine-data /data
+    einfo "Mounted alpine-data on /data"
+    data_mounted=true
   fi
 
-  # # Only setup persistence if both partitions are mounted
-  # if [ "$boot_mounted" = true ] && [ "$data_mounted" = true ]; then
-  #   einfo "Setting up persistent files and directories..."
+  # Only setup persistence if both partitions are mounted
+  if [ "$boot_mounted" = true ] && [ "$data_mounted" = true ]; then
+    einfo "Setting up persistent files and directories..."
     
-  #   persistent_files=$(get_config persitence.files)
-  #   persistent_dirs=$(get_config persitence.dirs)
+    persistent_files=$(get_config persitence.files)
+    persistent_dirs=$(get_config persitence.dirs)
     
-  #   for file in $persistent_files; do
-  #     einfo "Setting up persistent file: $file"
-  #     alpine-persist file "$file"
-  #   done
+    for file in $persistent_files; do
+      einfo "Setting up persistent file: $file"
+      alpine-persist file "$file"
+    done
 
-  #   for dir in $persistent_dirs; do
-  #     einfo "Setting up persistent directory: $dir"
-  #     alpine-persist dir "$dir"
-  #   done
-  # else
-  #   ewarn "Skipping persistence: One or more partitions is not mounted."
-  # fi
+    for dir in $persistent_dirs; do
+      einfo "Setting up persistent directory: $dir"
+      alpine-persist dir "$dir"
+    done
+  else
+    ewarn "Skipping persistence: One or more partitions is not mounted."
+  fi
 
   eend 0
 }
