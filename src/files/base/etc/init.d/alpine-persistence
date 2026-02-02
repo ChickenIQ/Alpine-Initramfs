@@ -15,10 +15,10 @@ start() {
   local data_mounted=false
 
   ebegin "Mounting Persistence Partitions"
+  mkdir -p /boot /data
 
   # Attempt to mount boot
   if [ -e "/dev/disk/by-partlabel/alpine-boot" ]; then
-    [ ! -d "/boot" ] && mkdir -p /boot  
     if mount -o defaults,noatime /dev/disk/by-partlabel/alpine-boot /boot; then
       einfo "Mounted alpine-boot on /boot"
       boot_mounted=true
@@ -29,7 +29,6 @@ start() {
 
   # Attempt to mount data
   if [ -e "/dev/disk/by-partlabel/alpine-data" ]; then
-    [ ! -d "/data" ] && mkdir -p /data
     if mount -o defaults,noatime /dev/disk/by-partlabel/alpine-data /data; then
       einfo "Mounted alpine-data on /data"
       data_mounted=true
