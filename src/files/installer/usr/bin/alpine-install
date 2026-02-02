@@ -35,8 +35,7 @@ persistence:
   dirs: []
 EOF
 
-# Install Limine Bootloader
-alpine-update-boot "A" "${cmdline}"
-
 # Install Alpine Image
 alpine-update-image "A" "${image}"
+
+reboot

@@ -5,8 +5,8 @@ image="$2"
 next_entry() {
   entry=$(alpine-get-cmdline alpine.slot)
   case "${entry}" in
-    A) echo "2" ;;
-    B) echo "1" ;;
+    A) echo "B" ;;
+    B) echo "A" ;;
     *) echo "Invalid slot: ${entry}" >&2; exit 1 ;;
   esac
 }
@@ -32,3 +32,7 @@ fi
 
 oras pull --platform linux/$arch --registry-config="" -o /boot/alpine/$slot/ $image 
 echo "$digest" > /boot/alpine/$slot/.digest
+
+
+# Update bootloader to boot the new slot
+alpine-update-boot "$slot"

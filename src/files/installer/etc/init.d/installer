@@ -23,6 +23,5 @@ start() {
     ebegin "Running Alpine Installer"
     alpine-install
     eend $?
-    reboot
   fi
 }     
