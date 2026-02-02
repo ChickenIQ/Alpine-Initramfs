@@ -15,8 +15,8 @@ if [ -z "$local_path" ]; then
 fi
 
 make_path() {
-  local type="$1"
-  local path="$2"
+  type="$1"
+  path="$2"
 
   if [ "$type" = "dir" ]; then
     mkdir -p "$path"

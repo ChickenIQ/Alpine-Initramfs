@@ -25,15 +25,15 @@ mkdir -p /boot
 mount "${part}2" /boot
 
 # Install Limine Bootloader
-alpine-update-boot "${cmdline}" "A"
+alpine-update-boot "A" "${cmdline}"
 
 # Install Alpine Image
-alpine-update-image "${image}" "A"
+alpine-update-image "A" "${image}"
 
 # Write Default config.yaml
 cat << EOF > /boot/alpine/config.yaml
-cmdline: "${cmdline}"
 image: "${image}"
+cmdline: "${cmdline}"
 
 persistence:
   files: []

@@ -1,6 +1,6 @@
 #!/bin/sh -e
-image=$1
-slot=$2
+slot="$1"
+image="$2"
 
 next_entry() {
   entry=$(alpine-get-cmdline alpine.slot)
