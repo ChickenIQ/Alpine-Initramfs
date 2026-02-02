@@ -6,6 +6,10 @@ get_config() { /usr/libexec/alpine-get-config "$1"; }
 # Get a parameter from the kernel command line
 get_cmdline() { /usr/libexec/alpine-get-cmdline "$1"; }
 
+get_slot_name() { [ "$1" = "1" ] && echo "A" || echo "B"; }
+
+get_next_slot() { [ "$1" = "1" ] && echo "2" || echo "1"; }
+
 # Get the currently booted slot from kernel command line
 get_booted_slot() {
   local slot=$(get_cmdline "alpine.slot")
@@ -17,7 +21,7 @@ get_booted_slot() {
 }
 
 # Get the current default boot slot from limine configuration
-get_current_slot() {
+get_config_slot() {
   local slot=""
   if [ -f /boot/limine/limine.conf ]; then
     slot=$(sed -n 's/^default_entry: *"\?\([0-9]\+\)"\?.*/\1/p' /boot/limine/limine.conf)
@@ -30,8 +34,19 @@ get_current_slot() {
   echo "$slot"
 }
 
-next_slot() {
-  [ "$1" = "1" ] && echo "2" || echo "1"
+# Check if a slot already has the specified digest
+compare_digest() {
+  local slot="$1"
+  local digest="$2"
+  
+  mkdir -p /boot/alpine/$slot
+  if [ -f /boot/alpine/$slot/.digest ]; then
+    if [ "$digest" = "$(cat /boot/alpine/$slot/.digest)" ]; then
+      echo "Image already up to date in slot $slot."
+      return 0
+    fi
+  fi
+  return 1
 }
 
 # Update the Alpine image in the specified slot if it's outdated
@@ -39,21 +54,25 @@ update_image() {
   local slot="$1"
   local image="$2"
 
-  [ "$slot" = "1" ] && slot="A" || slot="B"
+  local current_slot=$(get_slot_name "$slot")
+  local next_slot=$(get_slot_name "$(get_next_slot "$slot")")
+  
   local arch=$(uname -m | grep -q x86_64 && echo amd64 || echo arm64)
   local digest=$(oras manifest fetch --platform linux/$arch --registry-config="" --descriptor "$image" | yq -r ".digest" )
 
-  mkdir -p /boot/alpine/$slot
-  if [ -f /boot/alpine/$slot/.digest ]; then
-    if [ "$digest" = "$(cat /boot/alpine/$slot/.digest)" ]; then
-      echo "Alpine image is already up to date in slot $slot."
-      return 1
-    fi
+  # Check if current slot already has this digest
+  if compare_digest "$current_slot" "$digest"; then
+    return 1
   fi
 
-  echo "Updating Alpine image in slot $slot..."
-  oras pull --platform linux/$arch --registry-config="" -o /boot/alpine/$slot/ $image 
-  echo "$digest" > /boot/alpine/$slot/.digest
+  # Check if next slot already has this digest
+  if compare_digest "$next_slot" "$digest"; then
+    return 1
+  fi
+
+  echo "Updating Alpine image in slot $next_slot..."
+  oras pull --platform linux/$arch --registry-config="" -o /boot/alpine/$next_slot/ $image 
+  echo "$digest" > /boot/alpine/$next_slot/.digest
   return 0
 }
 
@@ -73,7 +92,7 @@ update_boot() {
   fi
 
   # Generate Limine configuration
-  echo "Updating Limine bootloader configuration (default slot: $entry)..."
+  echo "Updating Limine configuration (Slot: $entry)..."
   cat <<- EOF > /boot/limine/limine.conf
   \${cmdline}="${cmdline}"
   default_entry: ${entry}
@@ -106,11 +125,18 @@ if [ -z "$image" ]; then
   exit 1
 fi
 
-# Get the next slot to update
-slot=${ALPINE_SLOT:-$(next_slot "$(get_booted_slot)")}
 
-# Perform the update and set the slot to the current slot in the limine configuration if no update was made
-update_image "$slot" "$image" || slot=${ALPINE_SLOT:-$(get_current_slot)}
+# Update image and switch slots if the image changed, else use the one from the limine config
+current_slot="${ALPINE_SLOT:-$(get_booted_slot)}"
+if update_image "$current_slot" "$image"; then
+  boot_slot=$(get_next_slot "$current_slot")
+else
+  boot_slot=$(get_config_slot)
+fi
 
 # Update Bootloader
-update_boot "$dev" "$slot" "${ALPINE_CMDLINE:-$(get_cmdline "alpine.cmdline")}" "${ALPINE_INSTALL_BOOTLOADER:-false}"
+boot_slot="${ALPINE_SLOT:-$boot_slot}"
+cmdline="${ALPINE_CMDLINE:-$(get_config "cmdline")}"
+install_bootloader="${ALPINE_INSTALL_BOOTLOADER:-false}"
+
+update_boot "$dev" "$boot_slot" "$cmdline" "$install_bootloader"
