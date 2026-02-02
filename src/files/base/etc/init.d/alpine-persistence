@@ -14,14 +14,16 @@ start() {
 
   # Attempt to mount boot
   einfo "Checking for alpine-boot partition..."
-  if [ -e "/dev/disk/by-partlabel/alpine-boot" ]; then
+  if [ -b "/dev/disk/by-partlabel/alpine-boot" ]; then
+    einfo "Found alpine-boot partition."
     mount -o defaults,noatime /dev/disk/by-partlabel/alpine-boot /boot
     einfo "Mounted alpine-boot on /boot"
   fi
 
   # Attempt to mount data
   einfo "Checking for alpine-data partition..."
-  if [ -e "/dev/disk/by-partlabel/alpine-data" ]; then
+  if [ -b "/dev/disk/by-partlabel/alpine-data" ]; then
+    einfo "Found alpine-data partition."
     mount -o defaults,noatime /dev/disk/by-partlabel/alpine-data /data
     einfo "Mounted alpine-data on /data"
   fi
