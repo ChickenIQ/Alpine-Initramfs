@@ -26,7 +26,6 @@ rc-update add mount-ro shutdown
 
 rc-update add acpid default
 rc-update add crond default
-rc-update add sshd default
 
 # Additional services
 rc-update add dhcpcd boot
