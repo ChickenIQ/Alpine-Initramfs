@@ -48,7 +48,7 @@ persistence:
 EOF
 
 # Install Alpine Image
-export ALPINE_SLOT="A" 
+export ALPINE_SLOT="1" 
 export ALPINE_IMAGE="${image}"
 export ALPINE_CMDLINE="${cmdline}"
 export ALPINE_INSTALL_BOOTLOADER="true"
