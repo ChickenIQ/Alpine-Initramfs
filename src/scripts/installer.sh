@@ -7,5 +7,5 @@ apk add --no-cache sgdisk dosfstools e2fsprogs
 rc-update add installer default
 
 # Remove Persistence Setup
-rm -f /etc/init.d/setup-persistence
-rc-update del setup-persistence sysinit
+rm -f /etc/init.d/alpine-persistence
+rc-update del alpine-persistence sysinit
