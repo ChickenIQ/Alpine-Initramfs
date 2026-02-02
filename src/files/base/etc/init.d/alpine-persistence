@@ -35,8 +35,8 @@ start() {
   if [ "$boot_mounted" = true ] && [ "$data_mounted" = true ]; then
     einfo "Setting up persistent files and directories..."
     
-    persistent_files=$(get_config persitence.files)
-    persistent_dirs=$(get_config persitence.dirs)
+    persistent_files=$(get_config persistence.files)
+    persistent_dirs=$(get_config persistence.dirs)
     
     for file in $persistent_files; do
       einfo "Setting up persistent file: $file"
