@@ -35,17 +35,17 @@ start() {
   if [ "$boot_mounted" = true ] && [ "$data_mounted" = true ]; then
     einfo "Setting up persistent files and directories..."
     
-    persistent_files=$(get_config persistence.files)
-    persistent_dirs=$(get_config persistence.dirs)
+    files=$(get_config persistence.files)
+    dirs=$(get_config persistence.directories)
     
-    for file in $persistent_files; do
+    for file in $files; do
       einfo "Setting up persistent file: $file"
       alpine-persist file "$file"
     done
 
-    for dir in $persistent_dirs; do
+    for dir in $dirs; do
       einfo "Setting up persistent directory: $dir"
-      alpine-persist dir "$dir"
+      alpine-persist directory "$dir"
     done
   else
     ewarn "Skipping persistence: One or more partitions is not mounted."

@@ -9,13 +9,8 @@ if ! mountpoint -q /data; then
   exit 1
 fi
 
-if [ "$type" != "file" ] && [ "$type" != "dir" ]; then
-  echo "Usage: $0 {file|dir} path" >&2
-  exit 1
-fi
-
-if [ -z "$local_path" ]; then
-  echo "Usage: $0 {file|dir} path" >&2
+if [ "$type" != "file" ] && [ "$type" != "directory" ] || [ -z "$local_path" ]; then
+  echo "Usage: $0 {file|directory} path" >&2
   exit 1
 fi
 
@@ -23,7 +18,7 @@ make_path() {
   type="$1"
   path="$2"
 
-  if [ "$type" = "dir" ]; then
+  if [ "$type" = "directory" ]; then
     mkdir -p "$path"
   else
     mkdir -p "$(dirname "$path")"

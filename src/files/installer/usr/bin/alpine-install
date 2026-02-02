@@ -45,8 +45,13 @@ image: "${image}"
 cmdline: "${cmdline}"
 
 persistence:
-  files: []
-  dirs: []
+  files: 
+    - /etc/ssh/ssh_host_rsa_key
+    - /etc/ssh/ssh_host_ecdsa_key
+    - /etc/ssh/ssh_host_ed25519_key
+
+  directories: 
+    - /var/log
 EOF
 
 # Install Alpine Image
