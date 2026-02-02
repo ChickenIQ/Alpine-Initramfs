@@ -8,6 +8,18 @@ dev=$(alpine-get-cmdline alpine.disk)
 [ -z "${dev}" ] && echo "alpine.disk kernel parameter is required." && exit 1
 [ ! -b "${dev}" ] && echo "Device ${dev} does not exist." && exit 1
 
+echo "Waiting for DNS and Internet connectivity"
+count=0
+while ! wget -q --spider -T 2 https://github.com 2>/dev/null; do
+  if [ $count -ge 300 ]; then
+    echo "Network/DNS timed out"
+    exit 1
+  fi
+  count=$((count + 1)) 
+  sleep 1
+done
+
+echo "Partitioning Disk: ${dev}"
 sgdisk -Z \
   -n 1::+1M -t 1:ef02 -c 1:"alpine-bios" \
   -n 2::+5G -t 2:ef00 -c 2:"alpine-boot" \
@@ -36,6 +48,14 @@ persistence:
 EOF
 
 # Install Alpine Image
-alpine-update-image "A" "${image}"
+export ALPINE_SLOT="A" 
+export ALPINE_IMAGE="${image}"
+export ALPINE_CMDLINE="${cmdline}"
+export ALPINE_INSTALL_BOOTLOADER="true"
 
+echo "Installing Alpine Image: ${image}"
+alpine-update
+
+echo "Installation complete. Rebooting..."
+sleep 2
 reboot

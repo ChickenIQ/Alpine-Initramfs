@@ -43,7 +43,7 @@ ln -s /sbin/init /init
 
 # Enable persistence service
 mkdir -p /boot /data
-rc-update add setup-persistence sysinit
+rc-update add alpine-persistence sysinit
 
 # Install SSH keys
 mkdir -p /root/.ssh

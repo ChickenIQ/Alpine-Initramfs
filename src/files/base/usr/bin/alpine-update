@@ -1,0 +1,120 @@
+#!/bin/sh -e
+
+# Get an option from the configuration file
+get_config() {
+  local res=$(yq -r ".$1" /boot/alpine/config.yaml)
+  [ "$res" = "null" ] && echo "" || echo "$res"
+}
+
+# Get a parameter from the kernel command line
+get_cmdline() {
+  sed -n "s/.*$1=\"\?\([^\" ]*\)\"\?.*/\1/p" /proc/cmdline
+}
+
+# Get the currently booted slot from kernel command line
+get_booted_slot() {
+  local slot=$(get_cmdline "alpine.slot")
+  case "$slot" in
+    A|a) echo "1" ;;
+    B|b) echo "2" ;;
+    *) echo "Invalid slot: $slot" >&2; exit 1 ;;
+  esac
+}
+
+# Get the current default boot slot from limine configuration
+get_current_slot() {
+  local slot=""
+  if [ -f /boot/limine/limine.conf ]; then
+    slot=$(sed -n 's/^default_entry: *"\?\([0-9]\+\)"\?.*/\1/p' /boot/limine/limine.conf)
+  fi
+
+  if [ -z "${slot}" ]; then
+    slot="1"
+  fi
+
+  echo "$slot"
+}
+
+next_slot() {
+  [ "$1" = "1" ] && echo "2" || echo "1"
+}
+
+# Update the Alpine image in the specified slot if it's outdated
+update_image() {
+  local slot="$1"
+  local image="$2"
+
+  [ "$slot" = "1" ] && slot="A" || slot="B"
+  local arch=$(uname -m | grep -q x86_64 && echo amd64 || echo arm64)
+  local digest=$(oras manifest fetch --platform linux/$arch --registry-config="" --descriptor "$image" | yq -r ".digest" )
+
+  mkdir -p /boot/alpine/$slot
+  if [ -f /boot/alpine/$slot/.digest ]; then
+    if [ "$digest" = "$(cat /boot/alpine/$slot/.digest)" ]; then
+      echo "Alpine image is already up to date in slot $slot."
+      return 1
+    fi
+  fi
+
+  echo "Updating Alpine image in slot $slot..."
+  oras pull --platform linux/$arch --registry-config="" -o /boot/alpine/$slot/ $image 
+  echo "$digest" > /boot/alpine/$slot/.digest
+  return 0
+}
+
+# Update Limine bootloader configuration
+update_boot() {
+  local dev="$1"
+  local entry="$2"
+  local cmdline="$3"
+  local install="$4"
+
+  # Update Limine Bootloader files
+  if [ "$install" = "true" ]; then
+    mkdir -p /boot/EFI/BOOT/ /boot/limine
+    cp /usr/share/limine/limine-bios.sys /boot/limine
+    cp /usr/share/limine/BOOTX64.EFI /boot/EFI/BOOT/
+    limine bios-install "${dev}" > /dev/null
+  fi
+
+  # Generate Limine configuration
+  cat <<- EOF > /boot/limine/limine.conf
+  ${cmdline}="${cmdline}"
+  default_entry: "${entry}"
+  timeout: 2
+
+  /Alpine (A)
+    protocol: linux
+    path: boot():/alpine/A/vmlinuz
+    cmdline: ${cmdline} alpine.slot=A
+    module_path: boot():/alpine/A/initramfs
+
+  /Alpine (B)
+    protocol: linux
+    path: boot():/alpine/B/vmlinuz
+    cmdline: ${cmdline} alpine.slot=B
+    module_path: boot():/alpine/B/initramfs
+EOF
+}
+
+# Ensure /boot is mounted and get the device
+dev=$(findmnt -n -o SOURCE /boot | sed 's/p\?[0-9]*$//')
+if [ -z "${dev}" ]; then
+  echo "/boot is not mounted"
+  exit 1
+fi
+
+image=${ALPINE_IMAGE:-$(get_config "update.image")}
+if [ -z "$image" ]; then
+  echo "No image specified in /boot/alpine/config.yaml"
+  exit 1
+fi
+
+# Get the next slot to update
+slot=${ALPINE_SLOT:-$(next_slot "$(get_booted_slot)")}
+
+# Perform the update and set the slot to the current slot in the limine configuration if no update was made
+update_image "$slot" "$image" || slot=${ALPINE_SLOT:-$(get_current_slot)}
+
+# Update Bootloader
+update_boot "$dev" "$slot" "${ALPINE_CMDLINE:-$(get_cmdline "alpine.cmdline")}" "${ALPINE_INSTALL_BOOTLOADER:-false}"

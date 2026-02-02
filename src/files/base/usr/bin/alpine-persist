@@ -4,6 +4,11 @@ type="$1"
 local_path="$2"
 data_path="/data${local_path}"
 
+if ! mountpoint -q /data; then
+  echo "/data is not mounted" >&2
+  exit 1
+fi
+
 if [ "$type" != "file" ] && [ "$type" != "dir" ]; then
   echo "Usage: $0 {file|dir} path" >&2
   exit 1
