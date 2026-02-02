@@ -2,7 +2,7 @@
 set -e
 
 # Install base packages
-apk add --no-cache alpine-base linux-firmware-none linux-lts util-linux openssh dhcpcd limine oras-cli yq vim
+apk add --no-cache alpine-base linux-firmware-none linux-lts util-linux dropbear dhcpcd limine oras-cli yq vim
 
 # Default services
 rc-update add hwdrivers sysinit
@@ -29,8 +29,9 @@ rc-update add crond default
 rc-update add sshd default
 
 # Additional services
-rc-update add ntpd default
 rc-update add dhcpcd boot
+rc-update add ntpd default
+rc-update add dropbear default
 
 # Set root password
 echo "root:alpine" | chpasswd

@@ -45,12 +45,10 @@ image: "${image}"
 cmdline: "${cmdline}"
 
 persistence:
-  files: 
-    - /etc/ssh/ssh_host_rsa_key
-    - /etc/ssh/ssh_host_ecdsa_key
-    - /etc/ssh/ssh_host_ed25519_key
+  files: []
 
   directories: 
+    - /etc/dropbear
     - /var/log
 EOF
 
