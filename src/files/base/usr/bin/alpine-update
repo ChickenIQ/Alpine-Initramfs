@@ -76,7 +76,7 @@ update_image() {
     return 1
   fi
 
-  echo "Updating Alpine image in slot $next_slot..."
+  echo "Pulling \"$image\" to slot ($next_slot)..."
   oras pull --platform linux/$arch --registry-config="" -o /boot/alpine/$next_slot/ $image 
   echo "$digest" > /boot/alpine/$next_slot/.digest
   return 0
@@ -98,7 +98,7 @@ update_boot() {
   fi
 
   # Generate Limine configuration
-  echo "Updating Limine configuration (Slot: $entry)..."
+  echo "Updating Limine configuration ($(get_slot_name "$entry"))..."
   cat <<- EOF > /boot/limine/limine.conf
   \${cmdline}="${cmdline}"
   default_entry: ${entry}
