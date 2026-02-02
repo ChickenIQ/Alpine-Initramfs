@@ -44,11 +44,13 @@ start() {
     persistent_dirs=$(alpine-get-config persitence.dirs)
     
     for file in $persistent_files; do
+      einfo "Setting up persistent file: $file"
       alpine-persist-path file "$file"
     done
 
     for dir in $persistent_dirs; do
-       alpine-persist-path dir "$dir"
+      einfo "Setting up persistent directory: $dir"
+      alpine-persist-path dir "$dir"
     done
   else
     ewarn "Skipping persistence: One or more partitions is not mounted."
