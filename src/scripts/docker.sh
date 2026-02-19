@@ -1,7 +1,7 @@
 #/bin/sh -e
 
 # Install docker package
-apk add --no-cache docker
+apk add --no-cache docker docker-compose
 
 # Enable docker service
 rc-update add docker default
