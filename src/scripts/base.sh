@@ -28,8 +28,8 @@ rc-update add acpid default
 rc-update add crond default
 
 # Additional services
-rc-update add dhcpcd boot
 rc-update add ntpd default
+rc-update add dhcpcd default
 rc-update add dropbear default
 
 # Set root password
